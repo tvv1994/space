@@ -1,7 +1,6 @@
 package com.space.model;
 
 import javax.persistence.*;
-import java.util.Calendar;
 import java.util.Date;
 
 @Entity
@@ -107,15 +106,4 @@ public class Ship {
         this.rating = rating;
     }
 
-    public void calculateRating() {
-        double k = isUsed ? 0.5 : 1;
-
-        Calendar date = Calendar.getInstance();
-        date.setTime(prodDate);
-        int year =  date.get(Calendar.YEAR);
-
-        Double rating = (80 * speed * k)/(3019 - year + 1);
-
-        this.rating = Math.round(rating*100)/100D;
-    }
 }

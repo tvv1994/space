@@ -1,15 +1,17 @@
 package com.space.service;
 
 import com.space.controller.ShipOrder;
-import com.space.exception.ValidationExeption;
-import com.space.model.Ship;
-import com.space.model.ShipType;
+import com.space.exception.*;
+import com.space.model.*;
 import com.space.repository.ShipRepository;
+import com.space.util.Util;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.criteria.CriteriaBuilder;
@@ -67,46 +69,51 @@ public class ShipServiceIml implements ShipService{
 
         validateData(ship);
         if (ship.getUsed() == null) ship.setUsed(false);
-        ship.calculateRating();
+        Util.calculateRating(ship);
 
         shipRepository.save(ship);
-
         return ship;
     }
 
     @Override
-    public Ship getShip(Long id) throws Exception, ValidationExeption {
+    public Ship getShip(Long id) throws Exception {
         Ship ship = null;
-            if (id == null || id == 0) throw new ValidationExeption();
+        Util.validateID(id);
+        try {
             ship = shipRepository.findById(id).get();
+        } catch (Exception e) {
+            throw new NotFoundException(String.format("Корабль c ID: %d отсутствует.", id));
+        }
         return ship;
     }
 
     @Override
-    public Ship updateShip(Long id, Ship ship) throws Exception, ValidationExeption {
+    public Ship updateShip(Long id, Ship ship) throws Exception {
+            validateData(ship);
 
-        validateID(id);
-        validateData(ship);
+            Ship oldShip = getShip(id);
 
-        Ship oldShip = shipRepository.findById(id).get();
+            if (ship.getName() != null && !ship.getName().isEmpty()) oldShip.setName(ship.getName());
+            if (ship.getPlanet() != null) oldShip.setPlanet(ship.getPlanet());
+            if (ship.getShipType() != null) oldShip.setShipType(ship.getShipType());
+            if (ship.getProdDate() != null) oldShip.setProdDate(ship.getProdDate());
+            if (ship.getUsed() != null) oldShip.setUsed(ship.getUsed());
+            if (ship.getSpeed() != null) oldShip.setSpeed(ship.getSpeed());
+            if (ship.getCrewSize() != null) oldShip.setCrewSize(ship.getCrewSize());
 
-        if (ship.getName() != null && !ship.getName().isEmpty()) oldShip.setName(ship.getName());
-        if (ship.getPlanet() != null) oldShip.setPlanet(ship.getPlanet());
-        if (ship.getShipType() != null) oldShip.setShipType(ship.getShipType());
-        if (ship.getProdDate() != null) oldShip.setProdDate(ship.getProdDate());
-        if (ship.getUsed() != null) oldShip.setUsed(ship.getUsed());
-        if (ship.getSpeed() != null) oldShip.setSpeed(ship.getSpeed());
-        if (ship.getCrewSize() != null) oldShip.setCrewSize(ship.getCrewSize());
-
-        oldShip.calculateRating();
-        shipRepository.save(oldShip);
-        return oldShip;
+            Util.calculateRating(oldShip);
+            shipRepository.save(oldShip);
+            return oldShip;
     }
 
     @Override
     public void deleteShip(Long id) throws Exception {
-        validateID(id);
-        shipRepository.deleteById(id);
+            Util.validateID(id);
+        try {
+            shipRepository.deleteById(id);
+        } catch (Exception e) {
+            throw new NotFoundException(String.format("Ошибка при удалении корабля с ID: %d.", id));
+        }
     }
 
     private Specification<Ship> selectByName(String name) {
@@ -246,11 +253,7 @@ public class ShipServiceIml implements ShipService{
         };
     }
 
-    private void validateID(Long id) throws ValidationExeption {
-        if (id == null || id == 0) throw new ValidationExeption();
-    }
-
-    private void validateData(Ship ship) throws ValidationExeption {
+    private void validateData(Ship ship) throws BadRequestException {
 
         Integer year = null;
         Long id = ship.getId();
@@ -266,6 +269,6 @@ public class ShipServiceIml implements ShipService{
                 (year != null && (year < 2800 || year > 3019)) ||
                 (ship.getSpeed() != null && (ship.getSpeed() < 0.01 || ship.getSpeed() > 0.99)) ||
                 (ship.getCrewSize() != null && (ship.getCrewSize() <1 || ship.getCrewSize() > 9999))
-        ) throw new ValidationExeption();
+        ) throw new BadRequestException("Ошибка в данных.");
     }
 }

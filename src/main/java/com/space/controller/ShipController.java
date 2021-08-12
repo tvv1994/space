@@ -1,9 +1,8 @@
 package com.space.controller;
 
-import com.space.exception.ValidationExeption;
-import com.space.model.Ship;
-import com.space.model.ShipType;
+import com.space.model.*;
 import com.space.service.ShipServiceIml;
+import com.space.util.Util;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -57,61 +56,30 @@ public class ShipController {
 
     @RequestMapping(path = "/ships", method = RequestMethod.POST)
     @ResponseBody
-    public ResponseEntity<Ship> createShip(@RequestBody Ship ship) {
-        try {
+    public ResponseEntity<Ship> createShip(@RequestBody Ship ship) throws Exception {
             Ship shipCreated = shipServiceIml.createShip(ship);
             return new ResponseEntity<>(shipCreated, HttpStatus.OK);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
     }
 
     @RequestMapping(path = "/ships/{id}", method = RequestMethod.GET)
-    public ResponseEntity<Ship> getShip(@PathVariable("id") String id) {
-        try {
-            Long shipId = Long.parseLong(id);
+    public ResponseEntity<Ship> getShip(@PathVariable("id") String id) throws Exception {
+            Long shipId = Util.parseId(id);
             Ship ship = shipServiceIml.getShip(shipId);
-            if (ship == null) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             return new ResponseEntity<>(ship, HttpStatus.OK);
-        } catch (NumberFormatException | ValidationExeption e) {
-            e.printStackTrace();
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
     }
 
     @RequestMapping(path = "/ships/{id}", method = RequestMethod.POST)
     @ResponseBody
-    public ResponseEntity<Ship> updateShip(@PathVariable("id") String  id,
-                                           @RequestBody Ship ship) {
-        try {
-            Long shipId = Long.parseLong(id);
+    public ResponseEntity<Ship> updateShip(@PathVariable("id") String  id, @RequestBody Ship ship) throws Exception {
+            Long shipId = Util.parseId(id);
             Ship shipUpdated = shipServiceIml.updateShip(shipId, ship);
             return new ResponseEntity<>(shipUpdated, HttpStatus.OK);
-        } catch (NumberFormatException | ValidationExeption e) {
-            e.printStackTrace();
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
     }
 
     @RequestMapping(path = "/ships/{id}", method = RequestMethod.DELETE)
-    public ResponseEntity<Ship> deleteShip(@PathVariable("id") String id) {
-        try {
-            Long shipId = Long.parseLong(id);
+    public ResponseEntity<Ship> deleteShip(@PathVariable("id") String id) throws Exception {
+            Long shipId = Util.parseId(id);
             shipServiceIml.deleteShip(shipId);
             return new ResponseEntity<>(HttpStatus.OK);
-        } catch (ValidationExeption | NumberFormatException e) {
-            e.printStackTrace();
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
     }
 }

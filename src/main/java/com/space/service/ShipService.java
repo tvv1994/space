@@ -19,7 +19,7 @@ public interface ShipService {
 
     Ship createShip(Ship ship) throws Exception;
 
-    Ship getShip(Long id) throws Exception;
+    Object getShip(Long id) throws Exception;
 
     Ship updateShip(Long id, Ship ship) throws Exception;
 
